@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <item android:title="Communicate" android:id="@+id/communication_menu">
+        <menu>
+            <!--Menu items are generated automatically-->
+        </menu>
+    </item>
+
+    <item android:title="Additionally">
+        <menu>
+            <item
+                android:id="@+id/discover_devices"
+                android:title="Discover devices"
+                android:icon="@drawable/ic_menu_discover_devices"/>
+        </menu>
+    </item>
+
+</menu>
