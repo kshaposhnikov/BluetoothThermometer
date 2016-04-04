@@ -8,4 +8,7 @@
     <string name="additionally_sub_menu">Additionally</string>
     <string name="discover_devices">Discover devices</string>
     <string name="communicate_sub_menu">Connect to</string>
+    
+    <string name="command_measure">Measure</string>
+    <string name="command_loop">Loop</string>
 </resources>

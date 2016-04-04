@@ -12,27 +12,48 @@
     tools:context="com.shaposhnikov.bluetooththermometer.ThermometerActivity"
     tools:showIn="@layout/app_bar_thermometer">
 
+    <TextView
+        android:id="@+id/responseView"
+
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerHorizontal="true"
+        android:clickable="false"
+        android:scrollbars="vertical"
+        android:textAlignment="center"
+        android:textSize="70dp"
+        android:textColor="@android:color/background_dark"
+        android:text="+28 °C" />
+
+    <com.jjoe64.graphview.GraphView
+        android:layout_width="match_parent"
+        android:layout_height="300dip"
+        android:layout_below="@+id/responseView"
+        android:id="@+id/graph" />
+
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:id="@+id/linearLayout">
+        android:id="@+id/linearLayout"
+        android:layout_below="@+id/graph">
 
         <Button
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Single"
+            android:text="@string/command_measure"
             android:layout_alignParentBottom="true"
             android:layout_alignParentLeft="true"
             android:layout_alignParentStart="true"
             android:id="@+id/commandSingle" />
-    </LinearLayout>
 
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:clickable="false"
-        android:scrollbars="vertical"
-        android:id="@+id/responseView"
-        android:layout_below="@+id/linearLayout" />
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/command_loop"
+            android:layout_alignParentBottom="true"
+            android:layout_alignParentLeft="true"
+            android:layout_alignParentStart="true"
+            android:id="@+id/commandCycle" />
+    </LinearLayout>
 
 </RelativeLayout>
