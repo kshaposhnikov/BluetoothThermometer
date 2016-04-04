@@ -1,10 +1,11 @@
 <resources>
     <string name="app_name">BluetoothThermometer</string>
-
     <string name="navigation_drawer_open">Open navigation drawer</string>
     <string name="navigation_drawer_close">Close navigation drawer</string>
-
     <string name="action_settings">Settings</string>
-
     <string name="application_name">Bluetooth Thermometer</string>
+
+    <string name="additionally_sub_menu">Additionally</string>
+    <string name="discover_devices">Discover devices</string>
+    <string name="communicate_sub_menu">Connect to</string>
 </resources>
