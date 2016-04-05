@@ -67,18 +67,6 @@ public class ThermometerActivity extends AppCompatActivity
         final BluetoothWrapper bluetoothWrapper = new BluetoothWrapper(this.getApplicationContext(), this);
         bluetoothWrapper.turnOn();
 
-        Button singleCommandBtn = (Button) findViewById(R.id.commandSingle);
-        singleCommandBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                try {
-                    bluetoothWrapper.sendCommand(Command.EXEC_SINGLE_MEASUREMENT, DeviceCache.getDevice(nameOfConnectedDevice));
-                } catch (ThermometerException e) {
-                    Log.e(this.getClass().getName(), e.getMessage(), e);
-                }
-            }
-        });
-
         final NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
 
@@ -92,6 +80,24 @@ public class ThermometerActivity extends AppCompatActivity
         });
 
         navigationViewObservable.setPairedDevices(bluetoothWrapper);
+    }
+
+    public void execSingleMeasurement(View view) {
+        try {
+            BluetoothWrapper bluetoothWrapper = new BluetoothWrapper(this.getApplicationContext(), this);
+            bluetoothWrapper.sendCommand(Command.EXEC_SINGLE_MEASUREMENT, DeviceCache.getDevice(nameOfConnectedDevice));
+        } catch (ThermometerException e) {
+            Log.e(this.getClass().getName(), e.getMessage(), e);
+        }
+    }
+
+    public void execContinuousMeasurement(View view) {
+        try {
+            BluetoothWrapper bluetoothWrapper = new BluetoothWrapper(this.getApplicationContext(), this);
+            bluetoothWrapper.sendCommand(Command.EXEC_CONTINUOUS_MEASUREMENT, DeviceCache.getDevice(nameOfConnectedDevice));
+        } catch (ThermometerException e) {
+            Log.e(this.getClass().getName(), e.getMessage(), e);
+        }
     }
 
     @TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR1)
@@ -148,22 +154,20 @@ public class ThermometerActivity extends AppCompatActivity
             if (R.id.discover_devices != item.getItemId()) {
                 BluetoothWrapper wrapper = new BluetoothWrapper(this.getApplicationContext(), this);
                 nameOfConnectedDevice = (String) item.getTitle();
-                wrapper.connect(
-                        DeviceCache.getDevice(nameOfConnectedDevice),
-                        new MessageHandler(
-                                this.getApplicationContext(),
-                                new ResponseViewObservable(
-                                        new Observer() {
-                                            @Override
-                                            public void update(Observable observable, Object data) {
-                                                if (data instanceof String) {
-                                                    ((TextView) findViewById(R.id.responseView)).append((String) data);
-                                                }
-                                            }
-                                        }
-                                )
-                        )
+
+                ResponseViewObservable observable = new ResponseViewObservable(
+                    new Observer() {
+                        @Override
+                        public void update(Observable observable, Object data) {
+                            if (data instanceof String) {
+                                ((TextView) findViewById(R.id.responseView)).append((String) data);
+                            }
+                        }
+                    }
                 );
+
+                MessageHandler handler = new MessageHandler(this.getApplicationContext(), observable);
+                wrapper.connect(DeviceCache.getDevice(nameOfConnectedDevice), handler);
             }
         } catch (ThermometerException e) {
             Log.e(this.getClass().getName(), "Device not found in cache", e);

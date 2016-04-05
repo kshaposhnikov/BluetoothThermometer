@@ -44,6 +44,7 @@
             android:layout_alignParentBottom="true"
             android:layout_alignParentLeft="true"
             android:layout_alignParentStart="true"
+            android:onClick="execSingleMeasurement"
             android:id="@+id/commandSingle" />
 
         <Button
@@ -53,6 +54,7 @@
             android:layout_alignParentBottom="true"
             android:layout_alignParentLeft="true"
             android:layout_alignParentStart="true"
+            android:onClick="execContinuousMeasurement"
             android:id="@+id/commandCycle" />
     </LinearLayout>
 
