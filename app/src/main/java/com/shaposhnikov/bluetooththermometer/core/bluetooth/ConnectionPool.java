@@ -3,6 +3,8 @@ package com.shaposhnikov.bluetooththermometer.core.bluetooth;
 import android.bluetooth.BluetoothDevice;
 import android.support.annotation.NonNull;
 
+import com.shaposhnikov.bluetooththermometer.exception.ThermometerException;
+
 import java.util.ArrayList;
 
 /**
@@ -16,17 +18,17 @@ public class ConnectionPool {
         connectionPool.add(connection);
     }
 
-    public static synchronized BluetoothConnection getConnectionByDevice(@NonNull BluetoothDevice device) {
+    public static synchronized BluetoothConnection getConnectionByDevice(@NonNull BluetoothDevice device) throws ThermometerException {
         return getConnectionByDeviceName(device.getName());
     }
 
-    public static synchronized BluetoothConnection getConnectionByDeviceName(@NonNull String deviceName) {
+    public static synchronized BluetoothConnection getConnectionByDeviceName(@NonNull String deviceName) throws ThermometerException {
         for (BluetoothConnection connection : connectionPool) {
             if (deviceName.equals(connection.getConnectedDevice().getName())) {
                 return connection;
             }
         }
 
-        return null;
+        throw new ThermometerException(String.format("Could not found connection for device with name: %s ", deviceName));
     }
 }

@@ -3,6 +3,7 @@ package com.shaposhnikov.bluetooththermometer.core.bluetooth;
 import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
+import android.bluetooth.BluetoothSocket;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Handler;
@@ -57,20 +58,16 @@ public class BluetoothWrapper {
         DeviceConnector deviceConnector = new DeviceConnector(device, handler);
         deviceConnector.start();
 
-        assert deviceConnector.getSocket().isConnected();
-
-        BluetoothConnection connection = new BluetoothConnection(deviceConnector.getSocket(), handler);
-        connection.start();
-
-        ConnectionPool.addConnection(connection);
+        final BluetoothSocket socket = deviceConnector.getSocket();
+        if (socket != null && socket.isConnected()) {
+            BluetoothConnection connection = new BluetoothConnection(socket, handler);
+            connection.start();
+            ConnectionPool.addConnection(connection);
+        }
     }
 
-    public void sendCommand(byte command, BluetoothDevice connectedDevice) {
+    public void sendCommand(byte command, BluetoothDevice connectedDevice) throws ThermometerException {
         BluetoothConnection bluetoothConnection = ConnectionPool.getConnectionByDevice(connectedDevice);
         bluetoothConnection.write(command);
-    }
-
-    public void getResponse() {
-
     }
 }

@@ -74,7 +74,7 @@ public class ThermometerActivity extends AppCompatActivity
                 try {
                     bluetoothWrapper.sendCommand(Command.EXEC_SINGLE_MEASUREMENT, DeviceCache.getDevice(nameOfConnectedDevice));
                 } catch (ThermometerException e) {
-                    Log.e(this.getClass().getName(), "Device not found in cache with name " + nameOfConnectedDevice, e);
+                    Log.e(this.getClass().getName(), e.getMessage(), e);
                 }
             }
         });
