@@ -17,18 +17,21 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.SubMenu;
 import android.view.View;
-import android.widget.Button;
 import android.widget.TextView;
 
+import com.jjoe64.graphview.GraphView;
+import com.jjoe64.graphview.series.BarGraphSeries;
+import com.jjoe64.graphview.series.DataPoint;
 import com.shaposhnikov.bluetooththermometer.core.DeviceCache;
 import com.shaposhnikov.bluetooththermometer.core.bluetooth.BluetoothWrapper;
-import com.shaposhnikov.bluetooththermometer.core.bluetooth.Command;
+import com.shaposhnikov.bluetooththermometer.core.bluetooth.Commands;
 import com.shaposhnikov.bluetooththermometer.core.handler.MessageHandler;
 import com.shaposhnikov.bluetooththermometer.exception.ThermometerException;
 import com.shaposhnikov.bluetooththermometer.view.observable.NavigationViewObservable;
 import com.shaposhnikov.bluetooththermometer.view.observable.ResponseViewObservable;
 
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.util.Collection;
 import java.util.Observable;
 import java.util.Observer;
@@ -39,6 +42,7 @@ public class ThermometerActivity extends AppCompatActivity
 
     private static final Logger LOGGER = Logger.getLogger(ThermometerActivity.class.getName());
 
+    private static final String CELSIUS_DEGREE = "°C";
     private String nameOfConnectedDevice = "";
 
     @Override
@@ -80,12 +84,29 @@ public class ThermometerActivity extends AppCompatActivity
         });
 
         navigationViewObservable.setPairedDevices(bluetoothWrapper);
+
+        GraphView graph = (GraphView) findViewById(R.id.graph);
+        graph.setHorizontalScrollBarEnabled(true);
+
+        BarGraphSeries<DataPoint> series = new BarGraphSeries<DataPoint>(new DataPoint[] {
+                new DataPoint(0, -2),
+                new DataPoint(1, 5),
+                new DataPoint(2, 3),
+                new DataPoint(3, 2),
+                new DataPoint(4, 6),
+                new DataPoint(5, -2),
+                new DataPoint(6, 5),
+                new DataPoint(7, 3),
+                new DataPoint(8, 2),
+                new DataPoint(9, 6)
+        });
+        graph.addSeries(series);
     }
 
     public void execSingleMeasurement(View view) {
         try {
             BluetoothWrapper bluetoothWrapper = new BluetoothWrapper(this.getApplicationContext(), this);
-            bluetoothWrapper.sendCommand(Command.EXEC_SINGLE_MEASUREMENT, DeviceCache.getDevice(nameOfConnectedDevice));
+            bluetoothWrapper.sendCommand(Commands.EXEC_SINGLE_MEASUREMENT, DeviceCache.getDevice(nameOfConnectedDevice));
         } catch (ThermometerException e) {
             Log.e(this.getClass().getName(), e.getMessage(), e);
         }
@@ -94,7 +115,7 @@ public class ThermometerActivity extends AppCompatActivity
     public void execContinuousMeasurement(View view) {
         try {
             BluetoothWrapper bluetoothWrapper = new BluetoothWrapper(this.getApplicationContext(), this);
-            bluetoothWrapper.sendCommand(Command.EXEC_CONTINUOUS_MEASUREMENT, DeviceCache.getDevice(nameOfConnectedDevice));
+            bluetoothWrapper.sendCommand(Commands.EXEC_CONTINUOUS_MEASUREMENT, DeviceCache.getDevice(nameOfConnectedDevice));
         } catch (ThermometerException e) {
             Log.e(this.getClass().getName(), e.getMessage(), e);
         }
@@ -160,7 +181,13 @@ public class ThermometerActivity extends AppCompatActivity
                         @Override
                         public void update(Observable observable, Object data) {
                             if (data instanceof String) {
-                                ((TextView) findViewById(R.id.responseView)).append((String) data);
+                                String response = (String) data;
+                                if (Double.parseDouble(response) > 0) {
+                                    response = "+" + response + CELSIUS_DEGREE;
+                                } else if (Double.parseDouble(response) < 0){
+                                    response = "-" + response + CELSIUS_DEGREE;
+                                }
+                                ((TextView) findViewById(R.id.responseView)).setText(response);
                             }
                         }
                     }

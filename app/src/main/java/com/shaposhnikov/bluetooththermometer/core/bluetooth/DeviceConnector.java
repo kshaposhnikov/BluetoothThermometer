@@ -10,6 +10,7 @@ import android.os.Message;
 import android.util.Log;
 
 import com.shaposhnikov.bluetooththermometer.core.handler.HandlerConst;
+import com.shaposhnikov.bluetooththermometer.model.BTDevice;
 
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
@@ -20,14 +21,14 @@ import java.lang.reflect.Method;
  */
 public class DeviceConnector extends Thread {
 
-    private final BluetoothDevice device;
+    private final BTDevice device;
     private final BluetoothSocket socket;
 
     private Handler handler;
 
-    public DeviceConnector(BluetoothDevice device, Handler handler) {
+    public DeviceConnector(BTDevice device, Handler handler) {
         this.device = device;
-        this.socket = createRfcommSocket(device);
+        this.socket = createRfcommSocket(device.getDevice());
         this.handler = handler;
     }
 
@@ -37,7 +38,6 @@ public class DeviceConnector extends Thread {
             assert socket != null;
 
             socket.connect();
-            sendTextMessage("Connected to " + device.getName());
         } catch (Exception e) {
             try {
                 socket.close();

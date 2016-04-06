@@ -4,6 +4,7 @@ import android.bluetooth.BluetoothDevice;
 import android.support.annotation.NonNull;
 
 import com.shaposhnikov.bluetooththermometer.exception.ThermometerException;
+import com.shaposhnikov.bluetooththermometer.model.BTDevice;
 
 import java.util.ArrayList;
 
@@ -12,23 +13,38 @@ import java.util.ArrayList;
  */
 public class ConnectionPool {
 
-    private static final ArrayList<BluetoothConnection> connectionPool = new ArrayList<>();
+    private ArrayList<BluetoothConnection> connectionPool = new ArrayList<>();
 
-    public static synchronized void addConnection(@NonNull BluetoothConnection connection) {
+    private static ConnectionPool instance;
+
+    public static ConnectionPool getInstance() {
+        if (instance == null) {
+            synchronized (ConnectionPool.class) {
+                if (instance == null) {
+                    instance = new ConnectionPool();
+                }
+            }
+        }
+        return instance;
+    }
+
+    private ConnectionPool() {}
+
+    public synchronized void addConnection(@NonNull BluetoothConnection connection) {
         connectionPool.add(connection);
     }
 
-    public static synchronized BluetoothConnection getConnectionByDevice(@NonNull BluetoothDevice device) throws ThermometerException {
-        return getConnectionByDeviceName(device.getName());
+    public BluetoothConnection getConnectionByDevice(@NonNull BTDevice device) throws ThermometerException {
+        return getConnectionByDeviceName(device.getDeviceName());
     }
 
-    public static synchronized BluetoothConnection getConnectionByDeviceName(@NonNull String deviceName) throws ThermometerException {
+    public BluetoothConnection getConnectionByDeviceName(@NonNull String deviceName) throws ThermometerException {
         for (BluetoothConnection connection : connectionPool) {
             if (deviceName.equals(connection.getConnectedDevice().getName())) {
                 return connection;
             }
         }
 
-        throw new ThermometerException(String.format("Could not found connection for device with name: %s ", deviceName));
+        throw new ThermometerException(String.format("Could not found connection for device with name: %s [Pool size: %d]", deviceName, connectionPool.size()));
     }
 }

@@ -21,9 +21,9 @@
         android:clickable="false"
         android:scrollbars="vertical"
         android:textAlignment="center"
-        android:textSize="70dp"
+        android:textSize="60dp"
         android:textColor="@android:color/background_dark"
-        android:text="+28 °C" />
+        android:text="----" />
 
     <com.jjoe64.graphview.GraphView
         android:layout_width="match_parent"
