@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<android.support.design.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<android.support.design.widget.CoordinatorLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
@@ -23,12 +24,42 @@
 
     <include layout="@layout/content_thermometer" />
 
-    <android.support.design.widget.FloatingActionButton
-        android:id="@+id/fab"
+    <com.getbase.floatingactionbutton.FloatingActionsMenu
+        android:id="@+id/fab_menu"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_gravity="bottom|end"
-        android:layout_margin="@dimen/fab_margin"
-        android:src="@drawable/ic_add_white_24dp"/>
+        android:layout_gravity="right|bottom"
+        app:fab_addButtonColorNormal="@color/buttonAccent"
+        app:fab_addButtonColorPressed="@color/buttonAccentDark"
+        app:fab_addButtonPlusIconColor="@color/colorBlack"
+        app:fab_addButtonStrokeVisible="false"
+        app:fab_labelStyle="@style/menu_labels_style"
+        app:fab_labelsPosition="left">
+
+        <com.getbase.floatingactionbutton.FloatingActionButton
+            android:id="@+id/fab_event"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:fab_colorNormal="@color/buttonAccent"
+            app:fab_colorPressed="@color/buttonAccentDark"
+            app:fab_plusIconColor="@color/colorBlack"
+            app:fab_icon="@drawable/ic_get_app_black_24dp"
+            app:fab_size="mini"
+            app:fab_title="@string/command_measure"
+            android:onClick="execSingleMeasurement"/>
+
+        <com.getbase.floatingactionbutton.FloatingActionButton
+            android:id="@+id/fab_photo"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:fab_colorNormal="@color/buttonAccent"
+            app:fab_colorPressed="@color/buttonAccentDark"
+            app:fab_plusIconColor="@color/colorBlack"
+            app:fab_icon="@drawable/ic_schedule_black_24dp"
+            app:fab_size="mini"
+            app:fab_title="@string/command_loop"
+            android:onClick="execContinuousMeasurement" />
+
+    </com.getbase.floatingactionbutton.FloatingActionsMenu>
 
 </android.support.design.widget.CoordinatorLayout>
