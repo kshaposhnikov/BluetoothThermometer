@@ -16,10 +16,14 @@ import com.shaposhnikov.bluetooththermometer.core.handler.HandlerConst;
 import com.shaposhnikov.bluetooththermometer.exception.ThermometerException;
 import com.shaposhnikov.bluetooththermometer.model.BTDevice;
 import com.shaposhnikov.bluetooththermometer.model.DeviceStatus;
+import com.shaposhnikov.bluetooththermometer.model.PairedDevices;
 import com.shaposhnikov.bluetooththermometer.util.DeviceConverter;
+import com.shaposhnikov.bluetooththermometer.view.observable.UIObservable;
 
 import java.io.IOException;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.Set;
 
 /**
@@ -55,10 +59,31 @@ public class BluetoothWrapper {
         }
     }
 
-    public Collection<BluetoothDevice> getPairedDevices() {
+    public Collection<BluetoothDevice> getPairedDevices(final Handler handler) {
         Set<BluetoothDevice> bondedDevices = adapter.getBondedDevices();
-        DeviceCache.addDevice(DeviceConverter.toBTDevices(bondedDevices.toArray(new BluetoothDevice[bondedDevices.size()])));
-        return bondedDevices;
+        if (bondedDevices.size() > 0) {
+            BTDevice[] pairedDevices = DeviceConverter.toBTDevices(bondedDevices.toArray(new BluetoothDevice[bondedDevices.size()]));
+            DeviceCache.addDevice(pairedDevices);
+            sendPairedDevices(handler, new PairedDevices(pairedDevices));
+            return bondedDevices;
+        } else {
+            new Thread() {
+                @Override
+                public void run() {
+                    long endTime = System.currentTimeMillis() + TIMEOUT;
+                    while (System.currentTimeMillis() < endTime) {
+                        Set<BluetoothDevice> bondedDevices = adapter.getBondedDevices();
+                        if (bondedDevices.size() > 0) {
+                            BTDevice[] pairedDevices = DeviceConverter.toBTDevices(bondedDevices.toArray(new BluetoothDevice[bondedDevices.size()]));
+                            DeviceCache.addDevice(pairedDevices);
+                            sendPairedDevices(handler, new PairedDevices(pairedDevices));
+                            break;
+                        }
+                    }
+                }
+            }.start();
+        }
+        return Collections.EMPTY_SET;
     }
 
     public void connect(BTDevice device, Handler handler) throws ThermometerException, IOException {
@@ -86,6 +111,14 @@ public class BluetoothWrapper {
             BluetoothConnection bluetoothConnection = ConnectionPool.getInstance().getConnectionByDevice(connectedDevice);
             bluetoothConnection.write(command);
         }
+    }
+
+    private void sendPairedDevices(Handler handler, PairedDevices pairedDevices) {
+        Message message = handler.obtainMessage(HandlerConst.What.PAIRED_DEVICES);
+        Bundle bundle = new Bundle();
+        bundle.putSerializable(HandlerConst.BundleKey.SERIALIZABLE, pairedDevices);
+        message.setData(bundle);
+        handler.sendMessage(message);
     }
 
     private void sendTextMessage(String stringMessage, Handler handler) {

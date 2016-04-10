@@ -1,7 +1,5 @@
 <resources xmlns:android="http://schemas.android.com/apk/res/android">
     <item name="ic_menu_manage" type="drawable">@android:drawable/ic_menu_manage</item>
     <item name="ic_menu_paired_device" type="drawable">@android:drawable/ic_menu_send</item>
-    <item name="ic_menu_connect_success" type="drawable">@android:drawable/ic_menu_add</item>
     <item name="ic_menu_discover_devices" type="drawable">@android:drawable/ic_menu_search</item>
-    <item name="ic_btn_execute_command" type="drawable">@android:drawable/btn_plus</item>
 </resources>

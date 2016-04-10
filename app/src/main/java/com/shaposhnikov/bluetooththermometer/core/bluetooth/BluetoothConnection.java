@@ -46,6 +46,7 @@ public class BluetoothConnection extends Thread {
                     bundle.putString(HandlerConst.BundleKey.TEXT_MESSAGE, response.toString());
                     message.setData(bundle);
                     handler.sendMessage(message);
+                    response.setLength(0);
                 }
             } catch (IOException e) {
                 Log.e(this.getClass().getName(), "Couldn't read stream", e);

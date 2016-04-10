@@ -20,8 +20,9 @@
         android:clickable="false"
         android:scrollbars="vertical"
         android:textAlignment="center"
-        android:textSize="60dp"
-        android:textColor="@android:color/background_dark" />
+        android:textSize="60sp"
+        android:textColor="@android:color/background_dark"
+        tools:ignore="UnusedAttribute" />
 
     <com.jjoe64.graphview.GraphView
         android:layout_width="match_parent"

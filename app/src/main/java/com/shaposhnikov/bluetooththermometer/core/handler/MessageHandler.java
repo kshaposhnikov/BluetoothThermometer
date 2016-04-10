@@ -1,13 +1,16 @@
 package com.shaposhnikov.bluetooththermometer.core.handler;
 
+import android.bluetooth.BluetoothDevice;
 import android.content.Context;
 import android.os.Handler;
 import android.os.Message;
 import android.widget.Toast;
 
-import com.shaposhnikov.bluetooththermometer.view.observable.ResponseViewObservable;
+import com.shaposhnikov.bluetooththermometer.model.PairedDevices;
+import com.shaposhnikov.bluetooththermometer.view.observable.UIObservable;
 
-import java.util.Observable;
+import java.util.HashSet;
+import java.util.Hashtable;
 
 /**
  * Created by Kirill on 02.04.2016.
@@ -15,9 +18,9 @@ import java.util.Observable;
 public class MessageHandler extends Handler {
 
     private final Context context;
-    private final Observable observable;
+    private final UIObservable observable;
 
-    public MessageHandler(Context context, Observable observable) {
+    public MessageHandler(Context context, UIObservable observable) {
         this.context = context;
         this.observable = observable;
     }
@@ -30,11 +33,13 @@ public class MessageHandler extends Handler {
                 Toast.makeText(context, message, Toast.LENGTH_SHORT).show();
                 break;
             case HandlerConst.What.BLUETOOTH_RESPONSE:
-                if (observable instanceof ResponseViewObservable) {
-                    String response = (String) msg.getData().get(HandlerConst.BundleKey.TEXT_MESSAGE);
-                    ((ResponseViewObservable) observable).addResponseToView(response);
-                }
-
+                String response = (String) msg.getData().get(HandlerConst.BundleKey.TEXT_MESSAGE);
+                observable.execute(response);
+                break;
+            case HandlerConst.What.PAIRED_DEVICES:
+                PairedDevices pairedDevices = (PairedDevices) msg.getData().get(HandlerConst.BundleKey.SERIALIZABLE);
+                observable.execute(pairedDevices);
+                break;
         }
     }
 }
