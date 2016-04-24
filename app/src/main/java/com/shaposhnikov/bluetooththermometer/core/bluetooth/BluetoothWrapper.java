@@ -9,6 +9,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.util.Log;
 import android.widget.Toast;
 
 import com.shaposhnikov.bluetooththermometer.core.DeviceCache;
@@ -18,12 +19,10 @@ import com.shaposhnikov.bluetooththermometer.model.BTDevice;
 import com.shaposhnikov.bluetooththermometer.model.DeviceStatus;
 import com.shaposhnikov.bluetooththermometer.model.PairedDevices;
 import com.shaposhnikov.bluetooththermometer.util.DeviceConverter;
-import com.shaposhnikov.bluetooththermometer.view.observable.UIObservable;
 
 import java.io.IOException;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.Set;
 
 /**
@@ -31,7 +30,8 @@ import java.util.Set;
  */
 public class BluetoothWrapper {
 
-    private final static int TIMEOUT = 1000 * 3;
+    private final static int CONNECTION_TIMEOUT = 1000 * 10;
+    private final static int WAITING_PAIRED_DEVICES_TIMEOUT = 1000 * 60;
 
     private final Context context;
     private final Activity activity;
@@ -70,7 +70,7 @@ public class BluetoothWrapper {
             new Thread() {
                 @Override
                 public void run() {
-                    long endTime = System.currentTimeMillis() + TIMEOUT;
+                    long endTime = System.currentTimeMillis() + WAITING_PAIRED_DEVICES_TIMEOUT;
                     while (System.currentTimeMillis() < endTime) {
                         Set<BluetoothDevice> bondedDevices = adapter.getBondedDevices();
                         if (bondedDevices.size() > 0) {
@@ -86,24 +86,43 @@ public class BluetoothWrapper {
         return Collections.EMPTY_SET;
     }
 
-    public void connect(BTDevice device, Handler handler) throws ThermometerException, IOException {
+    public void connect(final BTDevice device, final Handler handler) throws ThermometerException, IOException {
         adapter.cancelDiscovery();
         device.setStatus(DeviceStatus.CONNECTING);
         DeviceConnector deviceConnector = new DeviceConnector(device, handler);
         deviceConnector.start();
 
         final BluetoothSocket socket = deviceConnector.getSocket();
-        long stopTime = System.currentTimeMillis() + TIMEOUT;
-        while (System.currentTimeMillis() < stopTime) {
-            if (socket != null && socket.isConnected()) {
-                BluetoothConnection connection = new BluetoothConnection(socket, handler);
-                connection.start();
-                ConnectionPool.getInstance().addConnection(connection);
-                device.setStatus(DeviceStatus.CONNECTED);
-                sendTextMessage("Connected to " + device.getDeviceName(), handler);
-                break;
+
+        new Thread() {
+            @Override
+            public void run() {
+                long stopTime = System.currentTimeMillis() + CONNECTION_TIMEOUT;
+                while (System.currentTimeMillis() < stopTime) {
+                    if (socket != null && socket.isConnected()) {
+                        BluetoothConnection connection = null;
+                        try {
+                            connection = new BluetoothConnection(socket, handler);
+                            connection.start();
+                            ConnectionPool.getInstance().addConnection(connection);
+                            device.setStatus(DeviceStatus.CONNECTED);
+                            sendTextMessage("Connected to " + device.getDeviceName(), handler);
+                        } catch (IOException e) {
+                            Log.e(this.getClass().getName(), "Couldn't instantiate streams", e);
+                            if (connection != null) {
+                                try {
+                                    connection.close();
+                                } catch (Exception e1) {
+                                    Log.e(this.getClass().getName(), "Couldn't close socket", e);
+                                }
+                            }
+                        } finally {
+                            break;
+                        }
+                    }
+                }
             }
-        }
+        }.start();
     }
 
     public void sendCommand(byte command, BTDevice connectedDevice) throws ThermometerException {

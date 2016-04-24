@@ -1,7 +1,9 @@
 package com.shaposhnikov.bluetooththermometer.core.bluetooth;
 
+import android.annotation.TargetApi;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothSocket;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -16,7 +18,8 @@ import java.io.OutputStream;
 /**
  * Created by Kirill on 03.04.2016.
  */
-public class BluetoothConnection extends Thread {
+@TargetApi(Build.VERSION_CODES.KITKAT)
+public class BluetoothConnection extends Thread implements AutoCloseable {
 
     private final BluetoothSocket socket;
     private final InputStream inputStream;
@@ -50,6 +53,7 @@ public class BluetoothConnection extends Thread {
                 }
             } catch (IOException e) {
                 Log.e(this.getClass().getName(), "Couldn't read stream", e);
+                break;
             }
         }
     }
@@ -64,5 +68,12 @@ public class BluetoothConnection extends Thread {
 
     public BluetoothDevice getConnectedDevice() {
         return socket.getRemoteDevice();
+    }
+
+    @Override
+    public void close() throws Exception {
+        socket.close();
+        inputStream.close();
+        outputStream.close();
     }
 }
