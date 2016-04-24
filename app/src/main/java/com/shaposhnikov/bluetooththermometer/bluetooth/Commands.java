@@ -1,4 +1,4 @@
-package com.shaposhnikov.bluetooththermometer.core.bluetooth;
+package com.shaposhnikov.bluetooththermometer.bluetooth;
 
 /**
  * Created by Kirill on 03.04.2016.

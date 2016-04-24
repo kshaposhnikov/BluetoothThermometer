@@ -17,13 +17,12 @@ import android.widget.Toast;
 
 import com.getbase.floatingactionbutton.FloatingActionsMenu;
 import com.jjoe64.graphview.GraphView;
-import com.jjoe64.graphview.series.BarGraphSeries;
 import com.jjoe64.graphview.series.DataPoint;
 import com.jjoe64.graphview.series.LineGraphSeries;
-import com.shaposhnikov.bluetooththermometer.core.DeviceCache;
-import com.shaposhnikov.bluetooththermometer.core.bluetooth.BluetoothWrapper;
-import com.shaposhnikov.bluetooththermometer.core.bluetooth.Commands;
-import com.shaposhnikov.bluetooththermometer.core.handler.MessageHandler;
+import com.shaposhnikov.bluetooththermometer.bluetooth.BluetoothWrapper;
+import com.shaposhnikov.bluetooththermometer.bluetooth.Commands;
+import com.shaposhnikov.bluetooththermometer.bluetooth.DeviceCache;
+import com.shaposhnikov.bluetooththermometer.handler.MessageHandler;
 import com.shaposhnikov.bluetooththermometer.exception.ThermometerException;
 import com.shaposhnikov.bluetooththermometer.view.observable.UIObservable;
 import com.shaposhnikov.bluetooththermometer.view.observer.GraphObserver;
@@ -32,7 +31,6 @@ import com.shaposhnikov.bluetooththermometer.view.observer.ThermometerTextViewOb
 
 import java.io.IOException;
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.logging.Logger;
 
 public class ThermometerActivity extends AppCompatActivity

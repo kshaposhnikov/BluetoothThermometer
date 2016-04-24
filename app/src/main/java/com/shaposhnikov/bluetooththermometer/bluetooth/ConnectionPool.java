@@ -1,6 +1,5 @@
-package com.shaposhnikov.bluetooththermometer.core.bluetooth;
+package com.shaposhnikov.bluetooththermometer.bluetooth;
 
-import android.bluetooth.BluetoothDevice;
 import android.support.annotation.NonNull;
 
 import com.shaposhnikov.bluetooththermometer.exception.ThermometerException;
