@@ -41,12 +41,11 @@ void initBluetooth()
 
 void initThermometer()
 {
-    // Start up the library
   sensors.begin();
-
- if (!sensors.getAddress(insideThermometer, 0)) Serial.println("Unable to find address for Device 0"); 
-  
-  // set the resolution to 9 bit
+  if (!sensors.getAddress(insideThermometer, 0))
+  { 
+    Serial.println("Unable to find address for Device 0"); 
+  }
   sensors.setResolution(insideThermometer, TEMPERATURE_PRECISION);  
 }
 
@@ -58,19 +57,26 @@ void setup(void)
   initBluetooth();
 }
 
-void printTemperature(DeviceAddress deviceAddress)
+float getTemperature(DeviceAddress deviceAddress)
 {
-  float tempC = sensors.getTempC(deviceAddress);
-  
+  sensors.requestTemperatures();
+  return sensors.getTempC(deviceAddress);
+}
+
+void printTemperature(float temp) 
+{
   lcd.setCursor(0, 0);
   lcd.print("Temp C: ");
-  lcd.print(tempC);
-
-  Serial.println(tempC);
-
+  lcd.print(temp);
+  
   lcd.setCursor(0, 1);
   lcd.print("Temp F: ");
-  lcd.print(DallasTemperature::toFahrenheit(tempC));
+  lcd.print(DallasTemperature::toFahrenheit(temp));  
+}
+
+void sendTemperature(float temp)
+{
+  Serial.println(temp);
 }
 
 byte getCommand() 
@@ -87,13 +93,13 @@ byte getCommand()
 void loop(void)
 { 
   byte command = getCommand();
+  float temp = getTemperature(insideThermometer);
+  printTemperature(temp);
   if (command == EXEC_SINGLE_MEASUREMENT) {
-    sensors.requestTemperatures();
-    printTemperature(insideThermometer);
+   sendTemperature(temp);
   } else if (command == EXEC_CONTINUOUS_MEASUREMENT) {
     for (int i = 0; i < 60; i++) {
-      sensors.requestTemperatures();
-      printTemperature(insideThermometer);
+      printTemperature(temp);
       delay(1000);
     }
   }
