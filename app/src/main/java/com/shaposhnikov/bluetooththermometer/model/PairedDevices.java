@@ -1,7 +1,5 @@
 package com.shaposhnikov.bluetooththermometer.model;
 
-import android.bluetooth.BluetoothDevice;
-
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;

@@ -1,6 +1,5 @@
-package com.shaposhnikov.bluetooththermometer.core.handler;
+package com.shaposhnikov.bluetooththermometer.handler;
 
-import android.bluetooth.BluetoothDevice;
 import android.content.Context;
 import android.os.Handler;
 import android.os.Message;
@@ -8,9 +7,6 @@ import android.widget.Toast;
 
 import com.shaposhnikov.bluetooththermometer.model.PairedDevices;
 import com.shaposhnikov.bluetooththermometer.view.observable.UIObservable;
-
-import java.util.HashSet;
-import java.util.Hashtable;
 
 /**
  * Created by Kirill on 02.04.2016.

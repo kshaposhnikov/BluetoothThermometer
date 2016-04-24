@@ -1,4 +1,4 @@
-package com.shaposhnikov.bluetooththermometer.core.bluetooth;
+package com.shaposhnikov.bluetooththermometer.bluetooth;
 
 import android.annotation.TargetApi;
 import android.bluetooth.BluetoothDevice;
@@ -9,7 +9,7 @@ import android.os.Handler;
 import android.os.Message;
 import android.util.Log;
 
-import com.shaposhnikov.bluetooththermometer.core.handler.HandlerConst;
+import com.shaposhnikov.bluetooththermometer.handler.HandlerConst;
 
 import java.io.IOException;
 import java.io.InputStream;

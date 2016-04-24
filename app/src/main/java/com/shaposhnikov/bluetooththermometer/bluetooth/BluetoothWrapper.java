@@ -1,4 +1,4 @@
-package com.shaposhnikov.bluetooththermometer.core.bluetooth;
+package com.shaposhnikov.bluetooththermometer.bluetooth;
 
 import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
@@ -12,8 +12,7 @@ import android.os.Message;
 import android.util.Log;
 import android.widget.Toast;
 
-import com.shaposhnikov.bluetooththermometer.core.DeviceCache;
-import com.shaposhnikov.bluetooththermometer.core.handler.HandlerConst;
+import com.shaposhnikov.bluetooththermometer.handler.HandlerConst;
 import com.shaposhnikov.bluetooththermometer.exception.ThermometerException;
 import com.shaposhnikov.bluetooththermometer.model.BTDevice;
 import com.shaposhnikov.bluetooththermometer.model.DeviceStatus;
