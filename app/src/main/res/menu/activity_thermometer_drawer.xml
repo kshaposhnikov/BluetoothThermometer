@@ -6,14 +6,4 @@
             <!--Menu items are generated automatically-->
         </menu>
     </item>
-
-    <item android:title="@string/additionally_sub_menu">
-        <menu>
-            <item
-                android:id="@+id/discover_devices"
-                android:title="@string/discover_devices"
-                android:icon="@drawable/ic_menu_discover_devices"/>
-        </menu>
-    </item>
-
 </menu>
