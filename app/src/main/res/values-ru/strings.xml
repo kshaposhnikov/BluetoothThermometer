@@ -7,6 +7,8 @@
 
     <string name="additionally_sub_menu">Дополнительно</string>
     <string name="discover_devices">Поиск устройств</string>
+    <string name="devices_discovery">Поиск устройств</string>
+    <string name="devices_not_found">Устройства не найдены</string>
     <string name="communicate_sub_menu">Подключиться к</string>
 
     <string name="command_measure">Измерить</string>

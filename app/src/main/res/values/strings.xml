@@ -7,6 +7,8 @@
 
     <string name="additionally_sub_menu">Additionally</string>
     <string name="discover_devices">Discover devices</string>
+    <string name="devices_discovery">Devices discovery</string>
+    <string name="devices_not_found">Devices not found</string>
     <string name="communicate_sub_menu">Connect to</string>
     
     <string name="command_measure">Measure</string>

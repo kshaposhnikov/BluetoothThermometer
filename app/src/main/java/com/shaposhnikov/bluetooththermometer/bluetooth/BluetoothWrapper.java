@@ -4,14 +4,22 @@ import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothSocket;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
+import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.os.Parcelable;
 import android.util.Log;
+import android.widget.ArrayAdapter;
+import android.widget.ListView;
 import android.widget.Toast;
 
+import com.shaposhnikov.bluetooththermometer.R;
+import com.shaposhnikov.bluetooththermometer.RequestConstants;
 import com.shaposhnikov.bluetooththermometer.handler.HandlerConst;
 import com.shaposhnikov.bluetooththermometer.exception.ThermometerException;
 import com.shaposhnikov.bluetooththermometer.model.BTDevice;
@@ -22,6 +30,7 @@ import com.shaposhnikov.bluetooththermometer.util.DeviceConverter;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.Set;
 
 /**
@@ -36,15 +45,15 @@ public class BluetoothWrapper {
     private final Activity activity;
     private final BluetoothAdapter adapter;
 
-    public BluetoothWrapper(Context context, Activity activity) {
-        this.context = context;
+    public BluetoothWrapper(final Activity activity) {
         this.activity = activity;
+        this.context = activity.getApplicationContext();
         this.adapter = BluetoothAdapter.getDefaultAdapter();
     }
 
     public void turnOn() {
         if (!adapter.isEnabled()) {
-            activity.startActivityForResult(new Intent(adapter.ACTION_REQUEST_ENABLE), 0);
+            activity.startActivityForResult(new Intent(adapter.ACTION_REQUEST_ENABLE), RequestConstants.REQUEST_ENABLE_BLUETOOTH);
         } else {
             Toast.makeText(context, "Bluetooth already enabled", Toast.LENGTH_SHORT).show();
         }
@@ -83,6 +92,18 @@ public class BluetoothWrapper {
             }.start();
         }
         return Collections.EMPTY_SET;
+    }
+
+    public void discoveredDevices(BroadcastReceiver broadcastReceiver) {
+        if (adapter.isDiscovering()) {
+            adapter.cancelDiscovery();
+            context.unregisterReceiver(broadcastReceiver);
+        }
+
+        context.registerReceiver(broadcastReceiver, new IntentFilter(BluetoothDevice.ACTION_FOUND));
+        context.registerReceiver(broadcastReceiver, new IntentFilter(BluetoothAdapter.ACTION_DISCOVERY_STARTED));
+
+        adapter.startDiscovery();
     }
 
     public void connect(final BTDevice device, final Handler handler) throws ThermometerException, IOException {

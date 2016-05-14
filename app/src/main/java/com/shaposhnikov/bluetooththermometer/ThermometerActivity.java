@@ -1,11 +1,19 @@
 package com.shaposhnikov.bluetooththermometer;
 
+import android.Manifest;
+import android.annotation.TargetApi;
 import android.bluetooth.BluetoothDevice;
+import android.content.DialogInterface;
+import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.os.Build;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
@@ -36,9 +44,6 @@ import java.util.logging.Logger;
 public class ThermometerActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
 
-    private static final Logger LOGGER = Logger.getLogger(ThermometerActivity.class.getName());
-
-    private static final String CELSIUS_DEGREE = "°C";
     private String nameOfConnectedDevice = "";
 
     @Override
@@ -49,13 +54,15 @@ public class ThermometerActivity extends AppCompatActivity
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
+        requestNecessaryPermissions();
+
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
                 this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
         drawer.setDrawerListener(toggle);
         toggle.syncState();
 
-        final BluetoothWrapper bluetoothWrapper = new BluetoothWrapper(this.getApplicationContext(), this);
+        final BluetoothWrapper bluetoothWrapper = new BluetoothWrapper(this);
         bluetoothWrapper.turnOn();
 
         final NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
@@ -67,11 +74,31 @@ public class ThermometerActivity extends AppCompatActivity
         bluetoothWrapper.getPairedDevices(new MessageHandler(this.getApplicationContext(), navigationViewObservable));
     }
 
+    public void requestNecessaryPermissions() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            // Android M Permission check
+            if (this.checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                final AlertDialog.Builder builder = new AlertDialog.Builder(this);
+                builder.setTitle("This app needs location access");
+                builder.setMessage("Please grant location access so this app can detect beacons.");
+                builder.setPositiveButton(android.R.string.ok, null);
+                builder.setOnDismissListener(new DialogInterface.OnDismissListener() {
+                    @Override
+                    @TargetApi(Build.VERSION_CODES.M)
+                    public void onDismiss(DialogInterface dialog) {
+                        requestPermissions(new String[]{Manifest.permission.ACCESS_COARSE_LOCATION}, RequestConstants.REQUEST_PERMISSION_ACCESS_COARSE_LOCATION);
+                    }
+                });
+                builder.show();
+            }
+        }
+    }
+
     public void execSingleMeasurement(View view) {
         try {
             FloatingActionsMenu menu = (FloatingActionsMenu) findViewById(R.id.fab_menu);
             menu.collapse();
-            BluetoothWrapper bluetoothWrapper = new BluetoothWrapper(this.getApplicationContext(), this);
+            BluetoothWrapper bluetoothWrapper = new BluetoothWrapper(this);
             bluetoothWrapper.sendCommand(Commands.EXEC_SINGLE_MEASUREMENT, DeviceCache.getDevice(nameOfConnectedDevice));
         } catch (ThermometerException e) {
             Log.e(this.getClass().getName(), e.getMessage(), e);
@@ -82,10 +109,35 @@ public class ThermometerActivity extends AppCompatActivity
         try {
             FloatingActionsMenu menu = (FloatingActionsMenu) findViewById(R.id.fab_menu);
             menu.collapse();
-            BluetoothWrapper bluetoothWrapper = new BluetoothWrapper(this.getApplicationContext(), this);
+            BluetoothWrapper bluetoothWrapper = new BluetoothWrapper(this);
             bluetoothWrapper.sendCommand(Commands.EXEC_CONTINUOUS_MEASUREMENT, DeviceCache.getDevice(nameOfConnectedDevice));
         } catch (ThermometerException e) {
             Log.e(this.getClass().getName(), e.getMessage(), e);
+        }
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        switch (requestCode) {
+            case RequestConstants.REQUEST_PERMISSION_ACCESS_COARSE_LOCATION: {
+                if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    Log.d(this.getClass().getName(), "coarse location permission granted");
+                } else {
+                    final AlertDialog.Builder builder = new AlertDialog.Builder(this);
+                    builder.setTitle("Functionality limited");
+                    builder.setMessage("Since location access has not been granted, this app will not be able to discover beacons when in the background.");
+                    builder.setPositiveButton(android.R.string.ok, null);
+                    builder.setOnDismissListener(new DialogInterface.OnDismissListener() {
+
+                        @Override
+                        public void onDismiss(DialogInterface dialog) {
+                        }
+
+                    });
+                    builder.show();
+                }
+                return;
+            }
         }
     }
 
@@ -125,8 +177,9 @@ public class ThermometerActivity extends AppCompatActivity
     @Override
     public boolean onNavigationItemSelected(MenuItem item) {
         try {
+            BluetoothWrapper wrapper = new BluetoothWrapper(this);
             if (R.id.discover_devices != item.getItemId()) {
-                BluetoothWrapper wrapper = new BluetoothWrapper(this.getApplicationContext(), this);
+
                 nameOfConnectedDevice = (String) item.getTitle();
 
                 if (nameOfConnectedDevice != null) {
@@ -146,6 +199,8 @@ public class ThermometerActivity extends AppCompatActivity
                 } else {
                     Toast.makeText(this.getApplicationContext(), "Not connected to the selected device", Toast.LENGTH_SHORT);
                 }
+            } else {
+                startActivityForResult(new Intent(this, DiscoveredDevicesActivity.class), RequestConstants.REQUEST_DISCOVER_DEVICES);
             }
         } catch (ThermometerException e) {
             Log.e(this.getClass().getName(), "Device not found in cache", e);
