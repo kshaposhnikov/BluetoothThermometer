@@ -9,42 +9,37 @@ import android.widget.Toast;
 import com.shaposhnikov.bluetooththermometer.model.PairedDevices;
 import com.shaposhnikov.bluetooththermometer.view.observable.UIObservable;
 
+import java.io.Serializable;
+import java.util.Collections;
+import java.util.Map;
+
 /**
  * Created by Kirill on 02.04.2016.
  */
 public class MessageHandler extends Handler {
 
     private final Context context;
-    private final UIObservable observable;
+    private final Map<Integer, UIObservable> observables;
 
     public MessageHandler(Context context) {
-        this(context, new UIObservable());
+        this(context, Collections.EMPTY_MAP);
     }
 
-    public MessageHandler(Context context, UIObservable observable) {
+    public MessageHandler(Context context, Map<Integer, UIObservable> observables) {
         this.context = context;
-        this.observable = observable;
+        this.observables = observables;
     }
 
     @Override
     public void handleMessage(Message msg) {
-        switch (msg.what) {
-            case HandlerConst.What.MESSAGE_TOAST:
-                String message = (String) msg.getData().get(HandlerConst.BundleKey.TEXT_MESSAGE);
-                Toast.makeText(context, message, Toast.LENGTH_SHORT).show();
-                break;
-            case HandlerConst.What.BLUETOOTH_RESPONSE:
-                String response = (String) msg.getData().get(HandlerConst.BundleKey.TEXT_MESSAGE);
-                observable.execute(response);
-                break;
-            case HandlerConst.What.PAIRED_DEVICES:
-                PairedDevices pairedDevices = (PairedDevices) msg.getData().get(HandlerConst.BundleKey.SERIALIZABLE);
-                observable.execute(pairedDevices);
-                break;
-            case HandlerConst.What.DEVICES_FOUND: case HandlerConst.What.DEVICES_NOT_FOUND: case HandlerConst.What.DISCOVERY_FINISHED:
-                String deviceName = (String) msg.getData().get(HandlerConst.BundleKey.TEXT_MESSAGE);
-                observable.execute(deviceName);
-                break;
+        if (HandlerConst.What.MESSAGE_TOAST == msg.what) {
+            String message = (String) msg.getData().get(HandlerConst.BundleKey.TEXT_MESSAGE);
+            Toast.makeText(context, message, Toast.LENGTH_SHORT).show();
+        } else {
+            if (msg.getData().keySet().size() == 1) {
+                String bundleKey = msg.getData().keySet().iterator().next();
+                observables.get(msg.what).execute(msg.getData().get(bundleKey));
+            }
         }
     }
 

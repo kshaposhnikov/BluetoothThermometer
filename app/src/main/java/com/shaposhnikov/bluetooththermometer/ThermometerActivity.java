@@ -2,7 +2,6 @@ package com.shaposhnikov.bluetooththermometer;
 
 import android.Manifest;
 import android.annotation.TargetApi;
-import android.bluetooth.BluetoothDevice;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -30,21 +29,23 @@ import com.jjoe64.graphview.series.LineGraphSeries;
 import com.shaposhnikov.bluetooththermometer.bluetooth.BluetoothWrapper;
 import com.shaposhnikov.bluetooththermometer.bluetooth.Commands;
 import com.shaposhnikov.bluetooththermometer.bluetooth.DeviceCache;
-import com.shaposhnikov.bluetooththermometer.handler.MessageHandler;
 import com.shaposhnikov.bluetooththermometer.exception.ThermometerException;
+import com.shaposhnikov.bluetooththermometer.handler.HandlerConst;
+import com.shaposhnikov.bluetooththermometer.handler.MessageHandler;
 import com.shaposhnikov.bluetooththermometer.view.observable.UIObservable;
 import com.shaposhnikov.bluetooththermometer.view.observer.GraphObserver;
 import com.shaposhnikov.bluetooththermometer.view.observer.NavigationViewObserver;
 import com.shaposhnikov.bluetooththermometer.view.observer.ThermometerTextViewObserver;
 
 import java.io.IOException;
-import java.util.Collection;
-import java.util.logging.Logger;
+import java.util.HashMap;
+import java.util.Map;
 
 public class ThermometerActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
 
-    private String nameOfConnectedDevice = "";
+    private TextView textView;
+    private LineGraphSeries<DataPoint> series;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -65,10 +66,19 @@ public class ThermometerActivity extends AppCompatActivity
         final NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
 
-        NavigationViewObserver navigationViewObserver = new NavigationViewObserver(navigationView);
-        UIObservable navigationViewObservable = new UIObservable<Collection<BluetoothDevice>>().addObservers(navigationViewObserver);
+        textView = (TextView) findViewById(R.id.responseView);
 
-        final BluetoothWrapper bluetoothWrapper = new BluetoothWrapper(this, new MessageHandler(this.getApplicationContext(), navigationViewObservable));
+        GraphView graph = (GraphView) findViewById(R.id.graph);
+        setupGraph(graph);
+        series = new LineGraphSeries<>();
+        graph.addSeries(series);
+
+
+        NavigationViewObserver navigationViewObserver = new NavigationViewObserver(navigationView);
+        HashMap<Integer, UIObservable> uiObservableHashMap = new HashMap<>();
+        uiObservableHashMap.put(HandlerConst.What.PAIRED_DEVICES, new UIObservable().addObservers(navigationViewObserver));
+
+        final BluetoothWrapper bluetoothWrapper = new BluetoothWrapper(this, new MessageHandler(this.getApplicationContext(), uiObservableHashMap));
         bluetoothWrapper.turnOn();
         bluetoothWrapper.getPairedDevices();
     }
@@ -97,8 +107,8 @@ public class ThermometerActivity extends AppCompatActivity
         try {
             FloatingActionsMenu menu = (FloatingActionsMenu) findViewById(R.id.fab_menu);
             menu.collapse();
-            BluetoothWrapper bluetoothWrapper = new BluetoothWrapper(this, new MessageHandler(this));
-            bluetoothWrapper.sendCommand(Commands.EXEC_SINGLE_MEASUREMENT, DeviceCache.getDevice(nameOfConnectedDevice));
+            BluetoothWrapper bluetoothWrapper = new BluetoothWrapper(this, getMessageHandlerGraph());
+            bluetoothWrapper.sendCommand(Commands.EXEC_SINGLE_MEASUREMENT, DeviceCache.getConnectedDevice());
         } catch (ThermometerException e) {
             Log.e(this.getClass().getName(), e.getMessage(), e);
         }
@@ -108,8 +118,8 @@ public class ThermometerActivity extends AppCompatActivity
         try {
             FloatingActionsMenu menu = (FloatingActionsMenu) findViewById(R.id.fab_menu);
             menu.collapse();
-            BluetoothWrapper bluetoothWrapper = new BluetoothWrapper(this, new MessageHandler(this));
-            bluetoothWrapper.sendCommand(Commands.EXEC_CONTINUOUS_MEASUREMENT, DeviceCache.getDevice(nameOfConnectedDevice));
+            BluetoothWrapper bluetoothWrapper = new BluetoothWrapper(this, getMessageHandlerGraph());
+            bluetoothWrapper.sendCommand(Commands.EXEC_CONTINUOUS_MEASUREMENT, DeviceCache.getConnectedDevice());
         } catch (ThermometerException e) {
             Log.e(this.getClass().getName(), e.getMessage(), e);
         }
@@ -176,26 +186,13 @@ public class ThermometerActivity extends AppCompatActivity
     @Override
     public boolean onNavigationItemSelected(MenuItem item) {
         try {
-            if (R.id.discover_devices != item.getItemId()) {
+           if (R.id.discover_devices != item.getItemId()) {
 
-                nameOfConnectedDevice = (String) item.getTitle();
+                String nameOfConnectedDevice = (String) item.getTitle();
 
                 if (nameOfConnectedDevice != null) {
-                    TextView textView = (TextView) findViewById(R.id.responseView);
-                    ThermometerTextViewObserver thermometerTextViewObserver = new ThermometerTextViewObserver(textView);
-
-                    GraphView graph = (GraphView) findViewById(R.id.graph);
-                    setupGraph(graph);
-                    LineGraphSeries<DataPoint> series = new LineGraphSeries<DataPoint>();
-                    graph.addSeries(series);
-                    GraphObserver graphObserver = new GraphObserver(series);
-
-                    UIObservable uiObservable = new UIObservable<String>().addObservers(thermometerTextViewObserver, graphObserver);
-
-                    MessageHandler handler = new MessageHandler(this.getApplicationContext(), uiObservable);
-
-                    BluetoothWrapper wrapper = new BluetoothWrapper(this, handler);
-                    wrapper.connect(DeviceCache.getDevice(nameOfConnectedDevice), handler);
+                    BluetoothWrapper wrapper = new BluetoothWrapper(this, getMessageHandlerGraph());
+                    wrapper.connect(DeviceCache.getDevice(nameOfConnectedDevice));
                 } else {
                     Toast.makeText(this.getApplicationContext(), "Not connected to the selected device", Toast.LENGTH_SHORT);
                 }
@@ -211,6 +208,20 @@ public class ThermometerActivity extends AppCompatActivity
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         drawer.closeDrawer(GravityCompat.START);
         return true;
+    }
+
+    private MessageHandler getMessageHandlerGraph() {
+        ThermometerTextViewObserver thermometerTextViewObserver = new ThermometerTextViewObserver(textView);
+
+        GraphObserver graphObserver = new GraphObserver(series);
+
+        Map<Integer, UIObservable> observableMap = new HashMap<>();
+        observableMap.put(HandlerConst.What.BLUETOOTH_RESPONSE, new UIObservable<String>().addObservers(
+                thermometerTextViewObserver,
+                graphObserver
+        ));
+
+        return new MessageHandler(this.getApplicationContext(), observableMap);
     }
 
     private void setupGraph(GraphView graph) {

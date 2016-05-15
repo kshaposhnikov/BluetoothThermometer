@@ -34,7 +34,7 @@ import java.util.Set;
  */
 public class BluetoothWrapper {
 
-    private final static int CONNECTION_TIMEOUT = 1000 * 10;
+    private final static int CONNECTION_TIMEOUT = 1000 * 60 * 2;
     private final static int WAITING_PAIRED_DEVICES_TIMEOUT = 1000 * 60;
 
     private final Context context;
@@ -106,7 +106,7 @@ public class BluetoothWrapper {
         adapter.startDiscovery();
     }
 
-    public void connect(final BTDevice device, final MessageHandler handler) throws ThermometerException, IOException {
+    public void connect(final BTDevice device) throws ThermometerException, IOException {
         adapter.cancelDiscovery();
         device.setStatus(DeviceStatus.CONNECTING);
         DeviceConnector deviceConnector = new DeviceConnector(device, handler);
@@ -122,7 +122,7 @@ public class BluetoothWrapper {
                     if (socket != null && socket.isConnected()) {
                         BluetoothConnection connection = null;
                         try {
-                            connection = new BluetoothConnection(socket, handler);
+                            connection = new BluetoothConnection(socket);
                             connection.start();
                             ConnectionPool.getInstance().addConnection(connection);
                             device.setStatus(DeviceStatus.CONNECTED);
@@ -148,7 +148,7 @@ public class BluetoothWrapper {
     public void sendCommand(byte command, BTDevice connectedDevice) throws ThermometerException {
         if (DeviceStatus.CONNECTED.equals(connectedDevice.getStatus())) {
             BluetoothConnection bluetoothConnection = ConnectionPool.getInstance().getConnectionByDevice(connectedDevice);
-            bluetoothConnection.write(command);
+            bluetoothConnection.write(command, handler);
         }
     }
 
@@ -156,14 +156,6 @@ public class BluetoothWrapper {
         Message message = handler.obtainMessage(HandlerConst.What.PAIRED_DEVICES);
         Bundle bundle = new Bundle();
         bundle.putSerializable(HandlerConst.BundleKey.SERIALIZABLE, pairedDevices);
-        message.setData(bundle);
-        handler.sendMessage(message);
-    }
-
-    private void sendTextMessage(String stringMessage, Handler handler) {
-        Message message = handler.obtainMessage(HandlerConst.What.MESSAGE_TOAST);
-        Bundle bundle = new Bundle();
-        bundle.putString(HandlerConst.BundleKey.TEXT_MESSAGE, stringMessage);
         message.setData(bundle);
         handler.sendMessage(message);
     }
@@ -192,6 +184,7 @@ public class BluetoothWrapper {
                 }
 
                 handler.sendTextMessage(STATUS, HandlerConst.What.DISCOVERY_FINISHED);
+                context.unregisterReceiver(this);
             }
         }
     }

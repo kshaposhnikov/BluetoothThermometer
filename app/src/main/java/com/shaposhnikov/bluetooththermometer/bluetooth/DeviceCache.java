@@ -4,6 +4,7 @@ import android.support.annotation.NonNull;
 
 import com.shaposhnikov.bluetooththermometer.exception.ThermometerException;
 import com.shaposhnikov.bluetooththermometer.model.BTDevice;
+import com.shaposhnikov.bluetooththermometer.model.DeviceStatus;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -23,6 +24,16 @@ public class DeviceCache {
         }
 
         throw new ThermometerException(String.format("Could not found device by name: %s ", name));
+    }
+
+    public static synchronized BTDevice getConnectedDevice() throws ThermometerException {
+        for (BTDevice device : devices) {
+            if (DeviceStatus.CONNECTED.equals(device.getStatus())) {
+                return device;
+            }
+        }
+
+        throw new ThermometerException("Couldn't found connected device");
     }
 
     public static synchronized void addDevice(BTDevice... btDevices) {

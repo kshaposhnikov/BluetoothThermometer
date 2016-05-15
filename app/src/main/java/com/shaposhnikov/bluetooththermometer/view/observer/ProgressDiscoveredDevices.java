@@ -11,8 +11,6 @@ import java.util.Observer;
  */
 public class ProgressDiscoveredDevices implements Observer {
 
-    private final static String STATUS = "DISCOVERY_FINISHED";
-
     private final ProgressBar progressBar;
 
     public ProgressDiscoveredDevices(ProgressBar progressBar) {
@@ -21,8 +19,6 @@ public class ProgressDiscoveredDevices implements Observer {
 
     @Override
     public void update(Observable observable, Object data) {
-        if (STATUS.equals(data)) {
-            progressBar.setVisibility(View.INVISIBLE);
-        }
+        progressBar.setVisibility(View.INVISIBLE);
     }
 }

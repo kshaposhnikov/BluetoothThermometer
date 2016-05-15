@@ -10,6 +10,7 @@ import android.os.Message;
 import android.util.Log;
 
 import com.shaposhnikov.bluetooththermometer.handler.HandlerConst;
+import com.shaposhnikov.bluetooththermometer.handler.MessageHandler;
 import com.shaposhnikov.bluetooththermometer.model.BTDevice;
 
 import java.io.IOException;
@@ -24,9 +25,9 @@ public class DeviceConnector extends Thread {
     private final BTDevice device;
     private final BluetoothSocket socket;
 
-    private Handler handler;
+    private MessageHandler handler;
 
-    public DeviceConnector(BTDevice device, Handler handler) {
+    public DeviceConnector(BTDevice device, MessageHandler handler) {
         this.device = device;
         this.socket = createRfcommSocket(device.getDevice());
         this.handler = handler;
@@ -42,10 +43,10 @@ public class DeviceConnector extends Thread {
             try {
                 socket.close();
             } catch (IOException e1) {
-                sendTextMessage("Failed to close connection");
+                handler.sendTextMessage("Failed to close connection", HandlerConst.What.MESSAGE_TOAST);
                 Log.e(this.getClass().getName(), "Failed to close connection", e);
             }
-            sendTextMessage("Failed connection");
+            handler.sendTextMessage("Failed connection", HandlerConst.What.MESSAGE_TOAST);
             Log.e(this.getClass().getName(), "Failed connection", e);
         }
     }
@@ -71,13 +72,5 @@ public class DeviceConnector extends Thread {
         }
 
         return null;
-    }
-
-    private void sendTextMessage(String stringMessage) {
-        Message message = handler.obtainMessage(HandlerConst.What.MESSAGE_TOAST);
-        Bundle bundle = new Bundle();
-        bundle.putString(HandlerConst.BundleKey.TEXT_MESSAGE, stringMessage);
-        message.setData(bundle);
-        handler.sendMessage(message);
     }
 }
