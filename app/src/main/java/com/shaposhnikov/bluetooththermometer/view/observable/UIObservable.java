@@ -8,10 +8,12 @@ import java.util.Observer;
  */
 public class UIObservable<T> extends Observable {
 
-    public UIObservable(Observer... observers) {
+    public UIObservable<T> addObservers(Observer... observers) {
         for (Observer observer : observers) {
-            addObserver(observer);
+            super.addObserver(observer);
         }
+
+        return this;
     }
 
     public void execute(T arg) {

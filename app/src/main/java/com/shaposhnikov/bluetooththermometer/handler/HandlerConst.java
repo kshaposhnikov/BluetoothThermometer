@@ -9,6 +9,9 @@ public class HandlerConst {
         public static final int MESSAGE_TOAST = 0;
         public static final int BLUETOOTH_RESPONSE = 1;
         public static final int PAIRED_DEVICES = 2;
+        public static final int DEVICES_FOUND = 3;
+        public static final int DEVICES_NOT_FOUND = 4;
+        public static final int DISCOVERY_FINISHED = 5;
     }
 
     public static class BundleKey {

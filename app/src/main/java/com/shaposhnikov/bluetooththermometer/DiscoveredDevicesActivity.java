@@ -10,11 +10,16 @@ import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
+import android.widget.ProgressBar;
 
 import com.shaposhnikov.bluetooththermometer.bluetooth.BluetoothWrapper;
 import com.shaposhnikov.bluetooththermometer.bluetooth.DeviceCache;
+import com.shaposhnikov.bluetooththermometer.handler.MessageHandler;
 import com.shaposhnikov.bluetooththermometer.model.BTDevice;
 import com.shaposhnikov.bluetooththermometer.model.DeviceStatus;
+import com.shaposhnikov.bluetooththermometer.view.observable.UIObservable;
+import com.shaposhnikov.bluetooththermometer.view.observer.DiscoveredDevicesObserver;
+import com.shaposhnikov.bluetooththermometer.view.observer.ProgressDiscoveredDevices;
 
 /**
  * Created by Kirill on 08.05.2016.
@@ -52,8 +57,14 @@ public class DiscoveredDevicesActivity extends AppCompatActivity {
         ListView listView = (ListView) findViewById(R.id.list_discovered_devices);
         listView.setAdapter(devices);
 
+        final ProgressBar progressBar = (ProgressBar) findViewById(R.id.device_discovering_indicator);
 
-        final BluetoothWrapper wrapper = new BluetoothWrapper(this);
-        wrapper.discoveredDevices(broadcastReceiver);
+        MessageHandler messageHandler = new MessageHandler(this.getApplicationContext(), new UIObservable().addObservers(
+                new DiscoveredDevicesObserver(devices),
+                new ProgressDiscoveredDevices(progressBar)
+        ));
+
+        final BluetoothWrapper wrapper = new BluetoothWrapper(this, messageHandler);
+        wrapper.discoveredDevices();
     }
 }

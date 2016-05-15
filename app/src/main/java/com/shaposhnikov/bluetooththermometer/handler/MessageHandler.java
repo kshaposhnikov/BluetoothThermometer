@@ -1,6 +1,7 @@
 package com.shaposhnikov.bluetooththermometer.handler;
 
 import android.content.Context;
+import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.widget.Toast;
@@ -15,6 +16,10 @@ public class MessageHandler extends Handler {
 
     private final Context context;
     private final UIObservable observable;
+
+    public MessageHandler(Context context) {
+        this(context, new UIObservable());
+    }
 
     public MessageHandler(Context context, UIObservable observable) {
         this.context = context;
@@ -36,6 +41,18 @@ public class MessageHandler extends Handler {
                 PairedDevices pairedDevices = (PairedDevices) msg.getData().get(HandlerConst.BundleKey.SERIALIZABLE);
                 observable.execute(pairedDevices);
                 break;
+            case HandlerConst.What.DEVICES_FOUND: case HandlerConst.What.DEVICES_NOT_FOUND: case HandlerConst.What.DISCOVERY_FINISHED:
+                String deviceName = (String) msg.getData().get(HandlerConst.BundleKey.TEXT_MESSAGE);
+                observable.execute(deviceName);
+                break;
         }
+    }
+
+    public void sendTextMessage(String stringMessage, int what) {
+        Message message = obtainMessage(what);
+        Bundle bundle = new Bundle();
+        bundle.putString(HandlerConst.BundleKey.TEXT_MESSAGE, stringMessage);
+        message.setData(bundle);
+        sendMessage(message);
     }
 }

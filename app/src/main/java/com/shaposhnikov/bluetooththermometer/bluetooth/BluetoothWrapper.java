@@ -8,20 +8,17 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
-import android.os.Parcelable;
 import android.util.Log;
-import android.widget.ArrayAdapter;
-import android.widget.ListView;
 import android.widget.Toast;
 
 import com.shaposhnikov.bluetooththermometer.R;
 import com.shaposhnikov.bluetooththermometer.RequestConstants;
 import com.shaposhnikov.bluetooththermometer.handler.HandlerConst;
 import com.shaposhnikov.bluetooththermometer.exception.ThermometerException;
+import com.shaposhnikov.bluetooththermometer.handler.MessageHandler;
 import com.shaposhnikov.bluetooththermometer.model.BTDevice;
 import com.shaposhnikov.bluetooththermometer.model.DeviceStatus;
 import com.shaposhnikov.bluetooththermometer.model.PairedDevices;
@@ -30,7 +27,6 @@ import com.shaposhnikov.bluetooththermometer.util.DeviceConverter;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.Set;
 
 /**
@@ -44,11 +40,15 @@ public class BluetoothWrapper {
     private final Context context;
     private final Activity activity;
     private final BluetoothAdapter adapter;
+    private final MessageHandler handler;
+    private final CustomBroadcastReceiver broadcastReceiver;
 
-    public BluetoothWrapper(final Activity activity) {
+    public BluetoothWrapper(final Activity activity, final MessageHandler handler) {
         this.activity = activity;
         this.context = activity.getApplicationContext();
         this.adapter = BluetoothAdapter.getDefaultAdapter();
+        this.handler = handler;
+        this.broadcastReceiver = new CustomBroadcastReceiver(handler);
     }
 
     public void turnOn() {
@@ -67,7 +67,7 @@ public class BluetoothWrapper {
         }
     }
 
-    public Collection<BluetoothDevice> getPairedDevices(final Handler handler) {
+    public Collection<BluetoothDevice> getPairedDevices() {
         Set<BluetoothDevice> bondedDevices = adapter.getBondedDevices();
         if (bondedDevices.size() > 0) {
             BTDevice[] pairedDevices = DeviceConverter.toBTDevices(bondedDevices.toArray(new BluetoothDevice[bondedDevices.size()]));
@@ -94,19 +94,19 @@ public class BluetoothWrapper {
         return Collections.EMPTY_SET;
     }
 
-    public void discoveredDevices(BroadcastReceiver broadcastReceiver) {
+    public void discoveredDevices() {
         if (adapter.isDiscovering()) {
             adapter.cancelDiscovery();
             context.unregisterReceiver(broadcastReceiver);
         }
 
         context.registerReceiver(broadcastReceiver, new IntentFilter(BluetoothDevice.ACTION_FOUND));
-        context.registerReceiver(broadcastReceiver, new IntentFilter(BluetoothAdapter.ACTION_DISCOVERY_STARTED));
+        context.registerReceiver(broadcastReceiver, new IntentFilter(BluetoothAdapter.ACTION_DISCOVERY_FINISHED));
 
         adapter.startDiscovery();
     }
 
-    public void connect(final BTDevice device, final Handler handler) throws ThermometerException, IOException {
+    public void connect(final BTDevice device, final MessageHandler handler) throws ThermometerException, IOException {
         adapter.cancelDiscovery();
         device.setStatus(DeviceStatus.CONNECTING);
         DeviceConnector deviceConnector = new DeviceConnector(device, handler);
@@ -126,7 +126,7 @@ public class BluetoothWrapper {
                             connection.start();
                             ConnectionPool.getInstance().addConnection(connection);
                             device.setStatus(DeviceStatus.CONNECTED);
-                            sendTextMessage("Connected to " + device.getDeviceName(), handler);
+                            handler.sendTextMessage("Connected to " + device.getDeviceName(), HandlerConst.What.MESSAGE_TOAST);
                         } catch (IOException e) {
                             Log.e(this.getClass().getName(), "Couldn't instantiate streams", e);
                             if (connection != null) {
@@ -166,5 +166,33 @@ public class BluetoothWrapper {
         bundle.putString(HandlerConst.BundleKey.TEXT_MESSAGE, stringMessage);
         message.setData(bundle);
         handler.sendMessage(message);
+    }
+
+    private static class CustomBroadcastReceiver extends BroadcastReceiver {
+
+        private final static String STATUS = "DISCOVERY_FINISHED";
+
+        private final MessageHandler handler;
+        private boolean isDeviceFound = false;
+
+        public CustomBroadcastReceiver(MessageHandler handler) {
+            this.handler = handler;
+        }
+
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            if (BluetoothDevice.ACTION_FOUND.equals(intent.getAction())) {
+                BTDevice device = new BTDevice(intent.<BluetoothDevice>getParcelableExtra(BluetoothDevice.EXTRA_DEVICE), DeviceStatus.FREE);
+                DeviceCache.addDevice(device);
+                isDeviceFound = true;
+                handler.sendTextMessage(device.getDeviceName(), HandlerConst.What.DEVICES_FOUND);
+            } else if (BluetoothAdapter.ACTION_DISCOVERY_FINISHED.equals(intent.getAction())) {
+                if (!isDeviceFound) {
+                    handler.sendTextMessage(context.getString(R.string.devices_not_found), HandlerConst.What.DEVICES_NOT_FOUND);
+                }
+
+                handler.sendTextMessage(STATUS, HandlerConst.What.DISCOVERY_FINISHED);
+            }
+        }
     }
 }
