@@ -71,6 +71,7 @@ public class ThermometerActivity extends AppCompatActivity
         GraphView graph = (GraphView) findViewById(R.id.graph);
         setupGraph(graph);
         series = new LineGraphSeries<>();
+        series.appendData(new DataPoint(series.getHighestValueX(), 20d), true, 100);
         graph.addSeries(series);
 
 
