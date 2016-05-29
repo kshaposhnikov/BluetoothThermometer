@@ -99,7 +99,7 @@ void loop(void)
    sendTemperature(temp);
   } else if (command == EXEC_CONTINUOUS_MEASUREMENT) {
     for (int i = 0; i < 60; i++) {
-      printTemperature(temp);
+      sendTemperature(temp);
       delay(1000);
     }
   }
