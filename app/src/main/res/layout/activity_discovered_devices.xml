@@ -4,19 +4,20 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content">
 
-    <ProgressBar
-        android:layout_height="wrap_content"
-        android:layout_width="fill_parent"
-        android:id="@+id/device_discovering_indicator"
-        android:indeterminateOnly="true"
-        android:keepScreenOn="true" />
-
     <ListView
         android:id="@+id/list_discovered_devices"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:stackFromBottom="true"
         android:layout_weight="1" />
+
+    <ProgressBar
+        android:layout_height="wrap_content"
+        android:layout_width="fill_parent"
+        android:id="@+id/device_discovering_indicator"
+        android:stackFromBottom="true"
+        android:indeterminateOnly="true"
+        android:keepScreenOn="true" />
 
 
 </LinearLayout>

@@ -12,5 +12,5 @@
     <string name="communicate_sub_menu">Подключиться к</string>
 
     <string name="command_measure">Измерить</string>
-    <string name="command_loop">Зациклить</string>
+    <string name="command_loop">Измерить циклически</string>
 </resources>
